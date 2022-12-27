@@ -1,6 +1,6 @@
 # Akkar-Backend
 django version: 4.1.4
-python version: 3.10.4
+python version: 3.10.6
 # install the requirements
 pip install -r requirements.txt
 # run the server

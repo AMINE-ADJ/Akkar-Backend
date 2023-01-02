@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from api.models import SuperUser,Annonce
+
 class SuperUserSerializer(serializers.ModelSerializer):
     class Meta:
         model=SuperUser
@@ -13,11 +14,16 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
         model=Annonce
         fields=["id","titre","categorie","type"
         ,"surface","description"
-        ,"prix","annonceurid","date","my_image","my_contact","my_localisation"]
+        ,"prix","date","my_image","my_contact","my_localisation"]
+
     def get_my_image(self,obj):
-        result=obj.image_set.first()
+        result=obj.image_set.all()
+        listimage=[]
         if result:
-            return result.photo.url
+            for pic in result:
+                listimage.append(pic.photo.url)
+
+            return listimage
 
     def get_my_localisation(self,obj):
         result=obj.localisation
@@ -36,6 +42,7 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
             "adresseannonceur":result.adresseannonceur,
             "telephone":result.telephone
         }
+
 class AnnonceSerializer(serializers.ModelSerializer):
     my_image=serializers.SerializerMethodField(read_only=True)
     my_localisation=serializers.SerializerMethodField(read_only=True)
@@ -43,6 +50,7 @@ class AnnonceSerializer(serializers.ModelSerializer):
         model=Annonce
         fields=["id","titre","surface","prix",
         "date","my_image","my_localisation"]
+
     def get_my_image(self,obj):
         result=obj.image_set.first()
         if result:

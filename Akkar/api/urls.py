@@ -9,5 +9,6 @@ urlpatterns = [
     path('detailannonce/<int:pk>',views.detailannonce,name='detailannonce'),
     path("postannonce/",views.postannonce,name="postannonce"),
     path("mesannonces/",views.mesannonces,name="mesannonces"),
-    path('supprimerannonce/<int:pk>',views.supprimerannonce,name="supprimerannonce")
+    path('supprimerannonce/<int:pk>',views.supprimerannonce,name="supprimerannonce"),
+    path('lancerwebscraping/',views.lancerwebscraping,name="lancerwebscraping")
 ]

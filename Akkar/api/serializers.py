@@ -21,9 +21,11 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
         listimage=[]
         if result:
             for pic in result:
-                listimage.append(pic.photo.url)
-
-            return listimage
+                if pic.photo:
+                    listimage.append(pic.photo.url)
+                if pic.lien:
+                    listimage.append(pic.lien)
+        return listimage
 
     def get_my_localisation(self,obj):
         result=obj.localisation
@@ -54,7 +56,11 @@ class AnnonceSerializer(serializers.ModelSerializer):
     def get_my_image(self,obj):
         result=obj.image_set.first()
         if result:
-            return result.photo.url
+            if result.photo: 
+                return result.photo.url
+            if result.lien:
+                return result.lien
+
 
     def get_my_localisation(self,obj):
         result=obj.localisation

@@ -13,7 +13,7 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model=Annonce
         fields=["id","titre","categorie","type"
-        ,"surface","description"
+        ,"surface","description","annonceurid"
         ,"prix","date","my_image","my_contact","my_localisation"]
 
     def get_my_image(self,obj):
@@ -22,9 +22,9 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
         if result:
             for pic in result:
                 if pic.photo:
-                    listimage.append(pic.photo.url)
+                    listimage.append("http://127.0.0.1:8000"+pic.photo.url)
                 if pic.lien:
-                    listimage.append(pic.lien)
+                    listimage.append("http://www.annonce-algerie.com"+pic.lien)
         return listimage
 
     def get_my_localisation(self,obj):
@@ -51,15 +51,15 @@ class AnnonceSerializer(serializers.ModelSerializer):
     class Meta:
         model=Annonce
         fields=["id","titre","surface","prix",
-        "date","my_image","my_localisation"]
+        "date","annonceurid","my_image","my_localisation"]
 
     def get_my_image(self,obj):
         result=obj.image_set.first()
         if result:
             if result.photo: 
-                return result.photo.url
+                return "http://127.0.0.1:8000"+result.photo.url
             if result.lien:
-                return result.lien
+                return "http://www.annonce-algerie.com"+result.lien
 
 
     def get_my_localisation(self,obj):

@@ -11,34 +11,38 @@ import datetime
 @api_view(["GET"])
 def index(request):
     return Response("Hello, world. You're at the api index.")
-#api for checking if the user is admin
+#pour voir si l'utilisateur est admin
 @api_view(["POST"])
 def ifadmin(request):
-    #get the email from client request
     param=request.data["email"]
     try:
         instance=SuperUser.objects.get(email=param)
     except:
         return Response("not admin")
     return Response("is admin")
-#api for searching
+#pour voir toutes les annonces avant rechercher
+@api_view(["GET"])
+def afficherannonces(request,page):
+    queryset=Annonce.objects.all()[(page-1)*40:page*40]
+    res=AnnonceSerializer(queryset,many=True).data
+    return Response(res)
+    
+#pour la recherche et le filtrage
 @api_view(["POST"])
-def filterannonce(request):
-    #titre et description premier recherche
-    print(request.data)
+def filterannonce(request,page):
+    #titre et description premiere recherche
     param=request.data['param']
-    #description=request.data['description']
     try:
         type= request.data['type']
     except:
+        #recherche sans filtres, si le type n'existe pas dans le body de la requette
         type=None
     if type==None:
         queryset1=Annonce.objects.filter(titre__icontains=param)
         queryset2=Annonce.objects.filter(description__icontains=param)
         finalqueryset=queryset1 | queryset2
-        print(1)
         res={}
-        res=AnnonceSerializer(finalqueryset,many=True).data
+        res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
         return Response(res)
     else:
         #recherche avec filtres
@@ -62,14 +66,10 @@ def filterannonce(request):
             ).filter(localisation__wilaya__icontains=wilaya
             ).filter(localisation__commune__icontains=commune
             ).filter(date__lte=newestdate).filter(date__gte=oldestdate)
-
-        # .filter(
-        # date__lte=newestdate).filter(date__gte=oldestdate)
-        print(2)
         res={}
-        res=AnnonceSerializer(finalqueryset,many=True).data
+        res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
         return Response(res)
-#detail annonce
+#detail annonce selon pk (id)
 @api_view(['GET'])
 def detailannonce(request,pk):
     try:
@@ -99,26 +99,25 @@ def postannonce(request):
     longitude=request.data["longitude"])
     #enregistrer les photos s'ils existent
     values=request.data
-    print(values)
     for value in values:
         if value.isnumeric() and values[value]:
             Image.objects.create(photo=values[value],annonce=annonce)
     return Response("votre annonce a été enregistrer!")
 
-#afficher mes annonces
+#afficher mes annonces avec limite des resultats selon le nombre de la page
 @api_view(["POST"])
-def mesannonces(request):
+def mesannonces(request,page):
     queryset=Annonce.objects.filter(annonceurid=request.data["param"])
-    res=AnnonceSerializer(queryset, many=True).data
+    res=AnnonceSerializer(queryset[(page-1)*40:page*40], many=True).data
     return Response(res)
 
-#supprimer annonce
+#supprimer annonce selon pk (id)
 @api_view(['DELETE'])
 def supprimerannonce(request,pk):
     Annonce.objects.get(id=pk).delete()
     return Response("votre annonce a été bien supprimer")
 
-#webscraping
+#webscraping du site annonce-algerie
 @api_view(['POST'])
 def lancerwebscraping(request):
     page=requests.get("http://www.annonce-algerie.com/AnnoncesImmobilier.asp").text

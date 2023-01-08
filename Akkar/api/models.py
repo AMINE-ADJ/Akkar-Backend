@@ -16,6 +16,8 @@ class Annonce(models.Model):
     prix=models.CharField(max_length=31,default='dafault')
     annonceurid=models.CharField(max_length=31,null=True,blank=True)
     date=models.DateField(default=date.today)
+    class Meta:
+        ordering=['-date']
 
 class Image(models.Model):
     photo=models.ImageField(upload_to='pictures',blank=True,null=True)

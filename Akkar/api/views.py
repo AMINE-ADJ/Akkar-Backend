@@ -120,99 +120,107 @@ def supprimerannonce(request,pk):
 #webscraping du site annonce-algerie
 @api_view(['POST'])
 def lancerwebscraping(request):
-    page=requests.get("http://www.annonce-algerie.com/AnnoncesImmobilier.asp").text
-    time.sleep(5)
-    soup=BeautifulSoup(page,'lxml')
-    anchors=soup.find_all('a')
-    #avoir touts les liens vers les annonces dans le tableau des immobiliers
-    for anchor  in anchors :
-        lien=anchor["href"]
-        if "cod_ann" in lien:
-            #print(lien)
-            #print(20*'#')
-            #scraping du lien de l'annonce
-            pagedetail=requests.get(f"http://www.annonce-algerie.com/{lien}").text
-            time.sleep(5)
-            soupdetail=BeautifulSoup(pagedetail,'lxml')
-            params=soupdetail.find_all('td',class_='da_field_text')
-            #avoir les informations des annonces et les normaliser
-            datalist=[]
-            for param in params:
-                #print(param.text)
-                data=param.text
-                datalist.append(data.replace("\xa0","").replace("\r","").replace("\n","").replace("\t",""))
-                #print(20*"#")
-            check=soupdetail.find(id='all_photos')
-            if check:
-                divs=soupdetail.find(id='all_photos').find_all('a')
-                for anchor in divs:
-                    img=anchor["href"].replace("javascript:photo_apercu('","").replace("',300,300)","")
-                    #print(img)
-                    datalist.append(img)
-            soupcontact=BeautifulSoup(pagedetail,'lxml')
-            contact=soupcontact.find("span",class_="da_contact_value")
-            #print(contact.text)
-            #list qui contient toutes les infomations
-            datalist.append(contact.text)
-            #print(datalist)   
-            #fin de la recherche des informations
-            #compteur pour avoir les informations de l'annonce
-            cpt=0
-            #categorie et type
-            catettypeann=datalist[cpt][8:]
-            categorie=catettypeann[:catettypeann.find(">")]
-            #print(categorie)
-            typeann=catettypeann[len(categorie)+1:]
-            #print(typeann)
-            cpt=cpt+1
-            #wilaya et commune
-            wilayacomm=datalist[cpt][9:]
-            wilaya=wilayacomm[:wilayacomm.find(">")]
-            #print(wilaya)
-            commad=wilayacomm[len(wilaya)+1:]
-            comm=commad[:commad.find(">")]
-            #print(comm)
-            cpt=cpt+1
-            #surface
-            if not datalist[cpt][:datalist[cpt].find("m")].replace(" ","").isnumeric():
+    scrapingtime=int(request.data['scrapingtime'])
+    scrapingtime=scrapingtime // 2
+    pagecpt=1
+    while pagecpt <= scrapingtime:
+        if pagecpt==1:
+            page=requests.get("http://www.annonce-algerie.com/AnnoncesImmobilier.asp").text
+        else:
+            page=requests.get(f"http://www.annonce-algerie.com/AnnoncesImmobilier.asp?rech_cod_cat=1&rech_cod_rub=&rech_cod_typ=&rech_cod_sou_typ=&rech_cod_pay=DZ&rech_cod_reg=&rech_cod_vil=&rech_cod_loc=&rech_prix_min=&rech_prix_max=&rech_surf_min=&rech_surf_max=&rech_age=&rech_photo=&rech_typ_cli=&rech_order_by=31&rech_page_num={pagecpt}").text
+        time.sleep(5)
+        soup=BeautifulSoup(page,'lxml')
+        anchors=soup.find_all('a')
+        #avoir touts les liens vers les annonces dans le tableau des immobiliers
+        for anchor  in anchors :
+            lien=anchor["href"]
+            if "cod_ann" in lien:
+                #print(lien)
+                #print(20*'#')
+                #scraping du lien de l'annonce
+                pagedetail=requests.get(f"http://www.annonce-algerie.com/{lien}").text
+                time.sleep(5)
+                soupdetail=BeautifulSoup(pagedetail,'lxml')
+                params=soupdetail.find_all('td',class_='da_field_text')
+                #avoir les informations des annonces et les normaliser
+                datalist=[]
+                for param in params:
+                    #print(param.text)
+                    data=param.text
+                    datalist.append(data.replace("\xa0","").replace("\r","").replace("\n","").replace("\t",""))
+                    #print(20*"#")
+                check=soupdetail.find(id='all_photos')
+                if check:
+                    divs=soupdetail.find(id='all_photos').find_all('a')
+                    for anchor in divs:
+                        img=anchor["href"].replace("javascript:photo_apercu('","").replace("',300,300)","")
+                        #print(img)
+                        datalist.append(img)
+                soupcontact=BeautifulSoup(pagedetail,'lxml')
+                contact=soupcontact.find("span",class_="da_contact_value")
+                #print(contact.text)
+                #list qui contient toutes les infomations
+                datalist.append(contact.text)
+                #print(datalist)   
+                #fin de la recherche des informations
+                #compteur pour avoir les informations de l'annonce
+                cpt=0
+                #categorie et type
+                catettypeann=datalist[cpt][8:]
+                categorie=catettypeann[:catettypeann.find(">")]
+                #print(categorie)
+                typeann=catettypeann[len(categorie)+1:]
+                #print(typeann)
                 cpt=cpt+1
-            surface=datalist[cpt][:datalist[cpt].find("m")]
-            #print(surface)
-            cpt=cpt+1
-            #prix
-            prix=datalist[cpt][:datalist[cpt].find("D")]
-            #print(prix)
-            cpt=cpt+1
-            #description
-            description=datalist[cpt]
-            #print(description)
-            cpt=cpt+2
-            #date
-            date=datalist[cpt].replace("/","-")
-            correctdate=datetime.datetime.strptime(date[6:]+"-"+date[3:5]+"-"+date[:2], '%Y-%m-%d').date()
-            #print(correctdate)
-            cpt=cpt+1
-            imagelist=[]
-            #les liens vers les photos 
-            for item in datalist[cpt:]:
-                if "upload" in item:
-                    imagelist.append(item)
+                #wilaya et commune
+                wilayacomm=datalist[cpt][9:]
+                wilaya=wilayacomm[:wilayacomm.find(">")]
+                #print(wilaya)
+                commad=wilayacomm[len(wilaya)+1:]
+                comm=commad[:commad.find(">")]
+                #print(comm)
+                cpt=cpt+1
+                #surface
+                if not datalist[cpt][:datalist[cpt].find("m")].replace(" ","").isnumeric():
                     cpt=cpt+1
-            #num de telephone
-            telephone=datalist[cpt]
-            #print(telephone)
-            #enregistrer l'annonce avant
-            titre=categorie+" "+typeann+" "+wilaya+" "+comm
-            annonce=Annonce.objects.create(titre=titre,
-            categorie=categorie,type=typeann,
-            surface=surface,description=description or None,
-            prix=prix,annonceurid="annonce-algerie",date=correctdate)
-            #enregistrer le contact
-            Contact.objects.create(annonce=annonce,telephone=telephone)
-            #enregistrer la localisation
-            Localisation.objects.create(annonce=annonce,wilaya=wilaya,
-            commune=comm)
-            #enregistrer les photos s'ils existent
-            for value in imagelist:                
-                    Image.objects.create(lien=value,annonce=annonce)
+                surface=datalist[cpt][:datalist[cpt].find("m")]
+                #print(surface)
+                cpt=cpt+1
+                #prix
+                prix=datalist[cpt][:datalist[cpt].find("D")]
+                #print(prix)
+                cpt=cpt+1
+                #description
+                description=datalist[cpt]
+                #print(description)
+                cpt=cpt+2
+                #date
+                date=datalist[cpt].replace("/","-")
+                correctdate=datetime.datetime.strptime(date[6:]+"-"+date[3:5]+"-"+date[:2], '%Y-%m-%d').date()
+                #print(correctdate)
+                cpt=cpt+1
+                imagelist=[]
+                #les liens vers les photos 
+                for item in datalist[cpt:]:
+                    if "upload" in item:
+                        imagelist.append(item)
+                        cpt=cpt+1
+                #num de telephone
+                telephone=datalist[cpt]
+                #print(telephone)
+                #enregistrer l'annonce avant
+                titre=categorie+" "+typeann+" "+wilaya+" "+comm
+                annonce=Annonce.objects.create(titre=titre,
+                categorie=categorie,type=typeann,
+                surface=surface,description=description or None,
+                prix=prix,annonceurid="annonce-algerie",date=correctdate)
+                #enregistrer le contact
+                Contact.objects.create(annonce=annonce,telephone=telephone)
+                #enregistrer la localisation
+                Localisation.objects.create(annonce=annonce,wilaya=wilaya,
+                commune=comm)
+                #enregistrer les photos s'ils existent
+                for value in imagelist:                
+                        Image.objects.create(lien=value,annonce=annonce)
+        pagecpt=pagecpt+1
     return Response("operation terminer")

@@ -1,9 +1,9 @@
 from rest_framework import serializers
-from api.models import SuperUser,Annonce
+from api.models import Utilisateur,Annonce
 
-class SuperUserSerializer(serializers.ModelSerializer):
+class UtilisateurSerializer(serializers.ModelSerializer):
     class Meta:
-        model=SuperUser
+        model=Utilisateur
         fields= "__all__"
 
 class AnnonceDetailSerializer(serializers.ModelSerializer):
@@ -52,7 +52,7 @@ class AnnonceSerializer(serializers.ModelSerializer):
     class Meta:
         model=Annonce
         fields=["id","titre","surface","prix",
-        "date","annonceurid","my_image","my_annonces","my_localisation"]
+        "date","annonceuremail","my_image","my_annonces","my_localisation"]
 
     def get_my_image(self,obj):
         result=obj.image_set.first()

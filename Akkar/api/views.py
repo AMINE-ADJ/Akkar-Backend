@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import SuperUser,Annonce,Contact,Localisation,Image
-from .serializers import AnnonceSerializer,AnnonceDetailSerializer
+from .models import Utilisateur,Annonce,Contact,Localisation,Image
+from .serializers import AnnonceSerializer,AnnonceDetailSerializer,UtilisateurSerializer
 import requests
 import time
 from bs4 import BeautifulSoup
@@ -11,15 +11,25 @@ import datetime
 @api_view(["GET"])
 def index(request):
     return Response("Hello, world. You're at the api index.")
-#pour voir si l'utilisateur est admin
+# @api_view(["DELETE"])
+# def deleteall(request):
+#     Annonce.objects.all().delete()
+#     return Response("deleted")
+#pour gerer les utilisateurs les utilisateurs 
 @api_view(["POST"])
-def ifadmin(request):
+def utilisateurs(request):
     param=request.data["email"]
-    try:
-        instance=SuperUser.objects.get(email=param)
-    except:
-        return Response("not admin")
-    return Response("is admin")
+    instance=Utilisateur.objects.filter(email=param)
+    if instance:
+        res=UtilisateurSerializer(instance,many=True).data
+        return Response(res)
+    else: 
+        serializer=UtilisateurSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+    
+
 #pour voir toutes les annonces avant rechercher
 @api_view(["GET"])
 def afficherannonces(request,page):
@@ -83,11 +93,13 @@ def detailannonce(request,pk):
 @api_view(['POST'])
 def postannonce(request):
     #enregistrer l'annonce avant
+    identificateur=request.data["id"]
     titre=request.data["categorie"]+" "+request.data["type"]+" "+request.data["wilaya"]+" "+request.data["commune"]
-    annonce=Annonce.objects.create(titre=titre,
+    utilisateur=Utilisateur.objects.get(id=identificateur)
+    annonce=Annonce.objects.create(utilisateur=utilisateur,titre=titre,
     categorie=request.data["categorie"],type=request.data["type"],
     surface=request.data["surface"],description=request.data["description"] or None,
-    prix=request.data["prix"],annonceurid=request.data["annonceurid"])
+    prix=request.data["prix"],annonceuremail=request.data["annonceuremail"])
     #enregistrer le contact
     Contact.objects.create(annonce=annonce,nom=request.data["nom"],
     prenom=request.data["prenom"] or None,email=request.data["email"] or None,
@@ -102,12 +114,12 @@ def postannonce(request):
     for value in values:
         if value.isnumeric() and values[value]:
             Image.objects.create(photo=values[value],annonce=annonce)
-    return Response("votre annonce a été enregistrer!")
+    return Response("votre annonce a été enregistrer")
 
 #afficher mes annonces avec limite des resultats selon le nombre de la page
 @api_view(["POST"])
 def mesannonces(request,page):
-    queryset=Annonce.objects.filter(annonceurid=request.data["param"])
+    queryset=Annonce.objects.filter(utilisateur__id=request.data['id'])
     res=AnnonceSerializer(queryset[(page-1)*40:page*40], many=True).data
     return Response(res)
 
@@ -115,7 +127,7 @@ def mesannonces(request,page):
 @api_view(['DELETE'])
 def supprimerannonce(request,pk):
     Annonce.objects.get(id=pk).delete()
-    return Response("votre annonce a été bien supprimer")
+    return Response("votre annonce a été supprimer")
 
 #webscraping du site annonce-algerie
 @api_view(['POST'])
@@ -213,7 +225,7 @@ def lancerwebscraping(request):
                 annonce=Annonce.objects.create(titre=titre,
                 categorie=categorie,type=typeann,
                 surface=surface,description=description or None,
-                prix=prix,annonceurid="annonce-algerie",date=correctdate)
+                prix=prix,annonceuremail="annonce-algerie",date=correctdate)
                 #enregistrer le contact
                 Contact.objects.create(annonce=annonce,telephone=telephone)
                 #enregistrer la localisation

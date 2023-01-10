@@ -2,8 +2,11 @@ from django.db import models
 from datetime import date
 #admin model for admins table
 
-class SuperUser(models.Model):
-    email=models.CharField(max_length=255)
+class Utilisateur(models.Model):
+    email=models.CharField(max_length=255,default="ka_beraoud@esi.dz")
+    isadmin=models.BooleanField(default=False)
+    username=models.CharField(max_length=63,default="user")
+
     def __str__(self):
         return self.email 
 
@@ -14,8 +17,9 @@ class Annonce(models.Model):
     surface=models.CharField(max_length=15,default='dafault')
     description=models.TextField(null=True,blank=True)
     prix=models.CharField(max_length=31,default='dafault')
-    annonceurid=models.CharField(max_length=31,null=True,blank=True)
+    annonceuremail=models.CharField(max_length=31,null=True,blank=True,default="default")
     date=models.DateField(default=date.today)
+    utilisateur=models.ForeignKey(Utilisateur,on_delete=models.CASCADE,default=3)
     class Meta:
         ordering=['-date']
 

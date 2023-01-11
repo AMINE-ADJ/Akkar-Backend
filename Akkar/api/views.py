@@ -19,11 +19,12 @@ def index(request):
 @api_view(["POST"])
 def utilisateurs(request):
     param=request.data["email"]
-    instance=Utilisateur.objects.filter(email=param)
-    if instance:
-        res=UtilisateurSerializer(instance,many=True).data
-        return Response(res)
-    else: 
+    try:
+        instance=Utilisateur.objects.get(email=param)
+        if instance:
+            res=UtilisateurSerializer(instance,many=True).data
+            return Response(res)
+    except: 
         serializer=UtilisateurSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()

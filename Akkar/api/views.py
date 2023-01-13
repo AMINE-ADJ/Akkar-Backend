@@ -231,18 +231,24 @@ def lancerwebscraping(request):
 
 #post message
 @api_view(['POST'])
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
 def send_message(request) : 
     serializer = MessageSerializer(data=request.data )
     if serializer.is_valid(raise_exception=True) :
         serializer.save()
-        return Response("the messsage is sent with success")
+        return Response({"status":"200"}) #the messsage is sent with success
     
 #get messages
-@api_view(['POST'])
+@api_view(["POST"])
 def get_all_messages(request) : 
  
     id= request.data['id']
     queryset=Annonce.objects.filter(annonceuremail=id)
-    data = AnnanceMessagesSerializer(queryset , many=True).data
+    #paginate
+    paginator = PageNumberPagination()
+    paginator.page_size = 5
+    paginated_query_set =paginator.paginate_queryset(queryset, request)
+    #serialiaze
+    data = AnnanceMessagesSerializer(paginated_query_set , many=True).data
     print(data)
-    return Response(data)
+    return paginator.get_paginated_response(data)

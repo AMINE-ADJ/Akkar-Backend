@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import Utilisateur,Annonce,Contact,Localisation,Image
-from .serializers import AnnonceSerializer,AnnonceDetailSerializer,UtilisateurSerializer
+from .serializers import AnnonceSerializer,AnnonceDetailSerializer,UtilisateurSerializer , MessageSerializer , AnnanceMessagesSerializer
 import requests
 import time
 from bs4 import BeautifulSoup
@@ -227,3 +227,22 @@ def lancerwebscraping(request):
                         Image.objects.create(lien=value,annonce=annonce)
         pagecpt=pagecpt+1
     return Response("operation terminer")
+
+
+#post message
+@api_view(['POST'])
+def send_message(request) : 
+    serializer = MessageSerializer(data=request.data )
+    if serializer.is_valid(raise_exception=True) :
+        serializer.save()
+        return Response("the messsage is sent with success")
+    
+#get messages
+@api_view(['POST'])
+def get_all_messages(request) : 
+ 
+    id= request.data['id']
+    queryset=Annonce.objects.filter(annonceuremail=id)
+    data = AnnanceMessagesSerializer(queryset , many=True).data
+    print(data)
+    return Response(data)

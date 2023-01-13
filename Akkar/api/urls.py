@@ -13,4 +13,7 @@ urlpatterns = [
     path('lancerwebscraping/',views.lancerwebscraping,name="lancerwebscraping"),
     path("afficherannonces/<int:page>",views.afficherannonces,name="afficherannonces"),
     #path("deleteall/",views.deleteall,name="deleteall")
+    
+    path("sendmessage/",views.send_message,name="sendmessage"),
+    path("messages/",views.get_all_messages,name="messages"),
 ]

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from api.models import Utilisateur,Annonce
+from api.models import Utilisateur,Annonce , Message
 
 class UtilisateurSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,3 +69,19 @@ class AnnonceSerializer(serializers.ModelSerializer):
     def get_my_annonces(self,obj):
         results=Annonce.objects.all().count()
         return results
+    
+class MessageSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model= Message
+        fields= "__all__"
+        
+class AnnanceMessagesSerializer(serializers.ModelSerializer):
+    message_set = MessageSerializer( read_only=True ,many=True )
+    
+    class Meta:
+        model=Annonce
+        fields= ["id","titre" , "message_set"] 
+    
+    class Meta : 
+        ordering =  ['-date']

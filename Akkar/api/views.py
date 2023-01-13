@@ -22,7 +22,7 @@ def utilisateurs(request):
     try:
         instance=Utilisateur.objects.get(email=param)
         if instance:
-            res=UtilisateurSerializer(instance,many=True).data
+            res=UtilisateurSerializer(instance).data
             return Response(res)
     except: 
         serializer=UtilisateurSerializer(data=request.data)
@@ -30,7 +30,7 @@ def utilisateurs(request):
             serializer.save()
             return Response(serializer.data)
     
-
+    
 #pour voir toutes les annonces avant rechercher
 @api_view(["GET"])
 def afficherannonces(request,page):
@@ -43,40 +43,28 @@ def afficherannonces(request,page):
 def filterannonce(request,page):
     #titre et description premiere recherche
     param=request.data['param']
-    try:
-        type= request.data['type']
-    except:
-        #recherche sans filtres, si le type n'existe pas dans le body de la requette
-        type=None
-    if type==None:
-        queryset1=Annonce.objects.filter(titre__icontains=param)
-        queryset2=Annonce.objects.filter(description__icontains=param)
-        finalqueryset=queryset1 | queryset2
+    type=request.data['type']
+    #recherche sans filtres, si le type n'existe pas dans le body de la requette
+    queryset1=Annonce.objects.filter(titre__icontains=param)
+    queryset2=Annonce.objects.filter(description__icontains=param)
+    finalqueryset=queryset1 | queryset2
+    #recherche avec filtres
+    wilaya=request.data['wilaya']
+    commune=request.data['commune']
+    newestdate=request.data["newestdate"]
+    oldestdate=request.data["oldestdate"]
+    if not newestdate:
+        finalqueryset=finalqueryset.filter(type__icontains=type
+        ).filter(localisation__wilaya__icontains=wilaya
+        ).filter(localisation__commune__icontains=commune)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
         return Response(res)
     else:
-        #recherche avec filtres
-        wilaya=request.data['wilaya']
-        commune=request.data['commune']
-        newestdate=request.data["newestdate"]
-        oldestdate=request.data["oldestdate"]
-        if not newestdate:
-            queryset1=Annonce.objects.filter(titre__icontains=param)
-            queryset2=Annonce.objects.filter(description__icontains=param)
-            finalqueryset=queryset1 | queryset2
-            finalqueryset=finalqueryset.filter(type__icontains=type
-            ).filter(localisation__wilaya__icontains=wilaya
-            ).filter(localisation__commune__icontains=commune)
-        else:
-            queryset1=Annonce.objects.filter(titre__icontains=param)
-            queryset2=Annonce.objects.filter(description__icontains=param)
-            finalqueryset=queryset1 | queryset2
-
-            finalqueryset=finalqueryset.filter(type__icontains=type
-            ).filter(localisation__wilaya__icontains=wilaya
-            ).filter(localisation__commune__icontains=commune
-            ).filter(date__lte=newestdate).filter(date__gte=oldestdate)
+        finalqueryset=finalqueryset.filter(type__icontains=type
+        ).filter(localisation__wilaya__icontains=wilaya
+        ).filter(localisation__commune__icontains=commune).filter(date__lte=newestdate
+        ).filter(date__gte=oldestdate)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
         return Response(res)
@@ -166,7 +154,7 @@ def lancerwebscraping(request):
                 if check:
                     divs=soupdetail.find(id='all_photos').find_all('a')
                     for anchor in divs:
-                        img=anchor["href"].replace("javascript:photo_apercu('","").replace("',300,300)","")
+                        img=anchor["href"].replace("javascript:photo_apercu('","")
                         #print(img)
                         datalist.append(img)
                 soupcontact=BeautifulSoup(pagedetail,'lxml')
@@ -216,17 +204,19 @@ def lancerwebscraping(request):
                 #les liens vers les photos 
                 for item in datalist[cpt:]:
                     if "upload" in item:
-                        imagelist.append(item)
+                        imagelist.append(item[:item.find("'")])
                         cpt=cpt+1
                 #num de telephone
                 telephone=datalist[cpt]
                 #print(telephone)
                 #enregistrer l'annonce avant
                 titre=categorie+" "+typeann+" "+wilaya+" "+comm
-                annonce=Annonce.objects.create(titre=titre,
+                instance=Utilisateur.objects.get(id=43)
+                annonce=Annonce.objects.create(utilisateur= instance, titre=titre,
                 categorie=categorie,type=typeann,
                 surface=surface,description=description or None,
                 prix=prix,annonceuremail="annonce-algerie",date=correctdate)
+                
                 #enregistrer le contact
                 Contact.objects.create(annonce=annonce,telephone=telephone)
                 #enregistrer la localisation

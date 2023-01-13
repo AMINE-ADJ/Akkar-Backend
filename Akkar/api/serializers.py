@@ -13,7 +13,7 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model=Annonce
         fields=["id","titre","categorie","type"
-        ,"surface","description","annonceurid"
+        ,"surface","description","annonceuremail"
         ,"prix","date","my_image","my_contact","my_localisation"]
 
     def get_my_image(self,obj):

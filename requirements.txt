@@ -1,6 +1,5 @@
 django
 djangorestframework
-mysqlclient
 django-cors-headers
 beautifulsoup4
 lxml

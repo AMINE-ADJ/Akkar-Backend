@@ -48,11 +48,10 @@ class AnnonceDetailSerializer(serializers.ModelSerializer):
 class AnnonceSerializer(serializers.ModelSerializer):
     my_image=serializers.SerializerMethodField(read_only=True)
     my_localisation=serializers.SerializerMethodField(read_only=True)
-    my_annonces=serializers.SerializerMethodField(read_only=True)
     class Meta:
         model=Annonce
         fields=["id","titre","surface","prix",
-        "date","annonceuremail","my_image","my_annonces","my_localisation"]
+        "date","annonceuremail","my_image","my_localisation"]
 
     def get_my_image(self,obj):
         result=obj.image_set.first()
@@ -66,9 +65,7 @@ class AnnonceSerializer(serializers.ModelSerializer):
     def get_my_localisation(self,obj):
         result=obj.localisation
         return result.wilaya
-    def get_my_annonces(self,obj):
-        results=Annonce.objects.all().count()
-        return results
+    
     
 class MessageSerializer(serializers.ModelSerializer):
     

@@ -35,9 +35,11 @@ def utilisateurs(request):
 #pour voir toutes les annonces avant rechercher
 @api_view(["GET"])
 def afficherannonces(request,page):
-    queryset=Annonce.objects.all()[(page-1)*40:page*40]
-    res=AnnonceSerializer(queryset,many=True).data
-    return Response(res)
+    queryset=Annonce.objects.all()
+    res=AnnonceSerializer(queryset[(page-1)*40:page*40],many=True).data
+    augmented_serializer_data = [{'count':queryset.count()}]
+    augmented_serializer_data.append(list(res))
+    return Response(augmented_serializer_data)
     
 #pour la recherche et le filtrage
 @api_view(["POST"])
@@ -60,7 +62,9 @@ def filterannonce(request,page):
         ).filter(localisation__commune__icontains=commune)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
-        return Response(res)
+        augmented_serializer_data = [{"count":finalqueryset.count()}]
+        augmented_serializer_data.append(list(res))
+        return Response(augmented_serializer_data)
     else:
         finalqueryset=finalqueryset.filter(type__icontains=type
         ).filter(localisation__wilaya__icontains=wilaya
@@ -68,7 +72,9 @@ def filterannonce(request,page):
         ).filter(date__gte=oldestdate)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
-        return Response(res)
+        augmented_serializer_data = [{"count":finalqueryset.count()}]
+        augmented_serializer_data.append(list(res))
+        return Response(augmented_serializer_data)
 #detail annonce selon pk (id)
 @api_view(['GET'])
 def detailannonce(request,pk):
@@ -111,7 +117,9 @@ def postannonce(request):
 def mesannonces(request,page):
     queryset=Annonce.objects.filter(utilisateur__id=request.data['id'])
     res=AnnonceSerializer(queryset[(page-1)*40:page*40], many=True).data
-    return Response(res)
+    augmented_serializer_data = [{'count':queryset.count()}]
+    augmented_serializer_data.append(list(res))
+    return Response(augmented_serializer_data)
 
 #supprimer annonce selon pk (id)
 @api_view(['DELETE'])

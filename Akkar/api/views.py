@@ -107,6 +107,7 @@ def postannonce(request):
     longitude=request.data["longitude"])
     #enregistrer les photos s'ils existent
     values=request.data
+    print(values)
     for value in values:
         if value.isnumeric() and values[value]:
             Image.objects.create(photo=values[value],annonce=annonce)
@@ -251,8 +252,8 @@ def send_message(request) :
 @api_view(["POST"])
 def get_all_messages(request) : 
  
-    id= request.data['id']
-    queryset=Annonce.objects.filter(annonceuremail=id)
+    id= request.data['userid']
+    queryset=Annonce.objects.filter(utilisateur__id=id)
     #paginate
     paginator = PageNumberPagination()
     paginator.page_size = 5

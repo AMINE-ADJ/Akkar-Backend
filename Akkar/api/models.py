@@ -20,6 +20,7 @@ class Annonce(models.Model):
     annonceuremail=models.CharField(max_length=31,null=True,blank=True,default="default")
     date=models.DateField(default=date.today)
     utilisateur=models.ForeignKey(Utilisateur,on_delete=models.CASCADE,default=3)
+    
     class Meta:
         ordering=['-date']
 
@@ -44,6 +45,16 @@ class Localisation(models.Model):
     longitude=models.CharField(max_length=31,null=True,blank=True)
     annonce=models.OneToOneField(Annonce,on_delete=models.CASCADE)
 
+class Message(models.Model) :
+    annonce = models.ForeignKey(Annonce , on_delete=models.CASCADE)
+    offre = models.CharField(max_length=127)
+    telephone = models.CharField(max_length=15)
+    nom = models.CharField(max_length=31)
+    email = models.CharField(max_length=31)
+    date  = models.DateTimeField(auto_now_add=True)
+    
+    class Meta : 
+        ordering =  ['-date']
 
 
 # Create your models here.

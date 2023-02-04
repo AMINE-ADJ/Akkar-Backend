@@ -1,8 +1,9 @@
-from django.shortcuts import render
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.pagination import PageNumberPagination
 from .models import Utilisateur,Annonce,Contact,Localisation,Image
-from .serializers import AnnonceSerializer,AnnonceDetailSerializer,UtilisateurSerializer
+from .serializers import AnnonceSerializer,AnnonceDetailSerializer,UtilisateurSerializer , MessageSerializer , AnnanceMessagesSerializer
 import requests
 import time
 from bs4 import BeautifulSoup
@@ -34,9 +35,11 @@ def utilisateurs(request):
 #pour voir toutes les annonces avant rechercher
 @api_view(["GET"])
 def afficherannonces(request,page):
-    queryset=Annonce.objects.all()[(page-1)*40:page*40]
-    res=AnnonceSerializer(queryset,many=True).data
-    return Response(res)
+    queryset=Annonce.objects.all()
+    res=AnnonceSerializer(queryset[(page-1)*40:page*40],many=True).data
+    augmented_serializer_data = [{'count':queryset.count()}]
+    augmented_serializer_data.append(list(res))
+    return Response(augmented_serializer_data)
     
 #pour la recherche et le filtrage
 @api_view(["POST"])
@@ -59,7 +62,9 @@ def filterannonce(request,page):
         ).filter(localisation__commune__icontains=commune)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
-        return Response(res)
+        augmented_serializer_data = [{"count":finalqueryset.count()}]
+        augmented_serializer_data.append(list(res))
+        return Response(augmented_serializer_data)
     else:
         finalqueryset=finalqueryset.filter(type__icontains=type
         ).filter(localisation__wilaya__icontains=wilaya
@@ -67,7 +72,9 @@ def filterannonce(request,page):
         ).filter(date__gte=oldestdate)
         res={}
         res=AnnonceSerializer(finalqueryset[(page-1)*40:page*40],many=True).data
-        return Response(res)
+        augmented_serializer_data = [{"count":finalqueryset.count()}]
+        augmented_serializer_data.append(list(res))
+        return Response(augmented_serializer_data)
 #detail annonce selon pk (id)
 @api_view(['GET'])
 def detailannonce(request,pk):
@@ -103,14 +110,16 @@ def postannonce(request):
     for value in values:
         if value.isnumeric() and values[value]:
             Image.objects.create(photo=values[value],annonce=annonce)
-    return Response("votre annonce a été enregistrer")
+    return Response("votre annonce a été enregistrer" , status= status.HTTP_201_CREATED)
 
 #afficher mes annonces avec limite des resultats selon le nombre de la page
 @api_view(["POST"])
 def mesannonces(request,page):
     queryset=Annonce.objects.filter(utilisateur__id=request.data['id'])
     res=AnnonceSerializer(queryset[(page-1)*40:page*40], many=True).data
-    return Response(res)
+    augmented_serializer_data = [{'count':queryset.count()}]
+    augmented_serializer_data.append(list(res))
+    return Response(augmented_serializer_data)
 
 #supprimer annonce selon pk (id)
 @api_view(['DELETE'])
@@ -227,3 +236,39 @@ def lancerwebscraping(request):
                         Image.objects.create(lien=value,annonce=annonce)
         pagecpt=pagecpt+1
     return Response("operation terminer")
+
+
+#post message
+@api_view(['POST'])
+# @authentication_classes([SessionAuthentication, BasicAuthentication])
+def send_message(request) : 
+    serializer = MessageSerializer(data=request.data )
+    if serializer.is_valid(raise_exception=True) :
+        serializer.save()
+        return Response(status=status.HTTP_201_CREATED) #the messsage is sent with success
+    
+#get messages
+@api_view(["GET"])
+def get_all_messages(request) : 
+ 
+    id= request.query_params['id']
+    queryset=Annonce.objects.filter(annonceuremail=id)
+    #paginate
+    paginator = PageNumberPagination()
+    paginator.page_size = 5
+    paginated_query_set =paginator.paginate_queryset(queryset, request)
+    #serialiaze
+    data = AnnanceMessagesSerializer(paginated_query_set , many=True).data
+    print(data)
+    return paginator.get_paginated_response(data)
+
+
+@api_view(["GET"])
+def get_users(request) : 
+    
+    query_set= Utilisateur.objects.all()
+    data = UtilisateurSerializer(query_set , many=True).data
+    return Response(data)
+    
+    
+

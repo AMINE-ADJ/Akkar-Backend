@@ -1,9 +1,10 @@
-django
+django >=4.1.4
 djangorestframework
-mysqlclient
 django-cors-headers
 beautifulsoup4
 lxml
 requests
 django-cleanup
 Pillow
+pyyaml
+django-rest-swagger

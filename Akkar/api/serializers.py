@@ -80,5 +80,5 @@ class AnnanceMessagesSerializer(serializers.ModelSerializer):
         model=Annonce
         fields= ["id","titre" , "message_set"] 
     
-    class Meta : 
+    # class Meta : 
         ordering =  ['-date']

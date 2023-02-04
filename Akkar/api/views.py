@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework.pagination import PageNumberPagination
@@ -110,7 +110,7 @@ def postannonce(request):
     for value in values:
         if value.isnumeric() and values[value]:
             Image.objects.create(photo=values[value],annonce=annonce)
-    return Response("votre annonce a été enregistrer")
+    return Response("votre annonce a été enregistrer" , status= status.HTTP_201_CREATED)
 
 #afficher mes annonces avec limite des resultats selon le nombre de la page
 @api_view(["POST"])
@@ -245,13 +245,13 @@ def send_message(request) :
     serializer = MessageSerializer(data=request.data )
     if serializer.is_valid(raise_exception=True) :
         serializer.save()
-        return Response({"status":"200"}) #the messsage is sent with success
+        return Response(status=status.HTTP_201_CREATED) #the messsage is sent with success
     
 #get messages
-@api_view(["POST"])
+@api_view(["GET"])
 def get_all_messages(request) : 
  
-    id= request.data['id']
+    id= request.query_params['id']
     queryset=Annonce.objects.filter(annonceuremail=id)
     #paginate
     paginator = PageNumberPagination()
@@ -261,3 +261,14 @@ def get_all_messages(request) :
     data = AnnanceMessagesSerializer(paginated_query_set , many=True).data
     print(data)
     return paginator.get_paginated_response(data)
+
+
+@api_view(["GET"])
+def get_users(request) : 
+    
+    query_set= Utilisateur.objects.all()
+    data = UtilisateurSerializer(query_set , many=True).data
+    return Response(data)
+    
+    
+

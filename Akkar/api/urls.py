@@ -16,4 +16,6 @@ urlpatterns = [
     
     path("sendmessage/",views.send_message,name="sendmessage"),
     path("messages/",views.get_all_messages,name="messages"),
+    path("email/",views.get_annonce_with_email,name="email"),
+    path("users/",views.get_users,name="users"),
 ]

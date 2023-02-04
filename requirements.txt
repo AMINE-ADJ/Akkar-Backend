@@ -6,3 +6,5 @@ lxml
 requests
 django-cleanup
 Pillow
+pyyaml
+django-rest-swagger

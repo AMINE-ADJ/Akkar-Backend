@@ -20,6 +20,7 @@ class Annonce(models.Model):
     annonceuremail=models.CharField(max_length=31,null=True,blank=True,default="default")
     date=models.DateField(default=date.today)
     utilisateur=models.ForeignKey(Utilisateur,on_delete=models.CASCADE,default=3)
+    
     class Meta:
         ordering=['-date']
 

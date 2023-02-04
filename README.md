@@ -7,6 +7,6 @@ pip install -r requirements.txt
 python manage.py runserver ( executing with the terminal on the folder backend-akkar/Akkar)
 if you have any server running on that port you can change it with the command python manage.py runserver portnumber
 # run test:
-run the following code 
-###python manage.py test 
+*run the following code 
+python manage.py test 
 

@@ -9,5 +9,5 @@ if you have any server running on that port you can change it with the command p
 # run test:
 * run the following code 
 
-python manage.py test 
+python manage.py tests
 
